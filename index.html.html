@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Analyzer Ultimate — 24-in-1 Enterprise Academic Suite</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top System Banner: Role Authentication & GPS Status -->
+    <div class="system-topbar flex-between">
+      <div class="topbar-left">
+        <span class="user-role-badge" id="currentRoleBadge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span id="roleNameText">Admin User</span>
+        </span>
+        <span class="gps-badge" id="gpsStatusBadge" title="Click to verify GPS Location" onclick="verifyCampusGPS()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="gpsText">📍 GPS: Campus Verified</span>
+        </span>
+        <span class="backend-badge" id="backendStatusBadge" title="Click to inspect Node.js + MySQL Database backend" onclick="checkBackendLiveStatus()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="backendStatusText">⚡ MySQL Backend: Checking...</span>
+        </span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-sm btn-outline" id="authBtn" onclick="openLoginModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          <span id="authBtnText">Switch Role / Login</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        </div>
+        <div>
+          <h1>Attendance Analyzer Ultimate</h1>
+          <p class="subtitle">Enterprise Academic Suite: GPS Verification • Set Theory Engine • Reports & Alerts</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Active Course Selector -->
+        <div class="course-selector-badge" id="headerCourseBadge" title="Select active course/subject">
+          <label for="currentCourseSelect" class="small">Subject:</label>
+          <select id="currentCourseSelect" onchange="changeActiveCourse()" class="select-sm">
+            <option value="CS101">CS101 - Set Theory & Logic</option>
+            <option value="CS102">CS102 - Data Structures</option>
+            <option value="EC201">EC201 - Electronics</option>
+            <option value="CS202">CS202 - DBMS (Database Systems)</option>
+            <option value="MA201">MA201 - Mathematics</option>
+          </select>
+        </div>
+        <!-- Threshold Input -->
+        <div class="threshold-badge" title="Adjust minimum attendance threshold %">
+          <label for="thresholdInput" class="small">Min %:</label>
+          <input type="number" id="thresholdInput" min="50" max="100" value="75" onchange="updateThreshold()" class="input-threshold">
+          <span>%</span>
+        </div>
+        <button class="btn btn-secondary" onclick="loadSampleData()">Load Demo Data</button>
+        <button class="btn btn-icon" id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="nav-tabs" id="mainNavTabs">
+      <button class="tab-btn" id="tabBtnStudentPortal" data-tab="tab-student-portal" onclick="switchTab('tab-student-portal')">🎓 Student Portal</button>
+      <button class="tab-btn" id="tabBtnFacultyPortal" data-tab="tab-faculty-portal" onclick="switchTab('tab-faculty-portal')">👨‍🏫 Faculty Dashboard</button>
+      <button class="tab-btn active pill-active" id="tabBtnAdminDashboard" data-tab="tab-dashboard" onclick="switchTab('tab-dashboard')">Admin Overview</button>
+      <button class="tab-btn" id="tabBtnAnalytics" data-tab="tab-analytics" onclick="switchTab('tab-analytics')">📊 Analytics</button>
+      <button class="tab-btn" id="tabBtnStudents" data-tab="tab-students" onclick="switchTab('tab-students')">Student Roster</button>
+      <button class="tab-btn" id="tabBtnSubjectDetails" data-tab="tab-subject-details" onclick="switchTab('tab-subject-details')">📚 Subject-wise Student Details</button>
+      <button class="tab-btn" id="tabBtnAttendance" data-tab="tab-attendance" onclick="switchTab('tab-attendance')">Mark Attendance</button>
+      <button class="tab-btn" id="tabBtnSets" data-tab="tab-sets" onclick="switchTab('tab-sets')">Set Analysis &amp; Venn</button>
+      <button class="tab-btn" id="tabBtnEligibility" data-tab="tab-eligibility" onclick="switchTab('tab-eligibility')">Exam Debarred List</button>
+      <button class="tab-btn" id="tabBtnReport" data-tab="tab-report" onclick="switchTab('tab-report')">Reports &amp; Warnings</button>
+      <button class="tab-btn" id="tabBtnLeaderboard" data-tab="tab-leaderboard" onclick="switchTab('tab-leaderboard')">Leaderboard</button>
+      <button class="tab-btn" id="tabBtnLeaves" data-tab="tab-leaves" onclick="switchTab('tab-leaves')">Leave Portal</button>
+      <button class="tab-btn" id="tabBtnTimetable" data-tab="tab-timetable" onclick="switchTab('tab-timetable')">Timetable</button>
+      <button class="tab-btn" id="tabBtnAudit" data-tab="tab-audit" onclick="switchTab('tab-audit')">Audit Log</button>
+    <button class="tab-btn" id="tabBtnStudentInfo" data-tab="tab-student-info" onclick="switchTab('tab-student-info')">🧑‍💼 Student Info</button>
+    </nav>
+<section id="tab-student-info" class="tab-panel">
+  <div class="card margin-bottom">
+    <div class="card-header"><h3>All Students Attendance Summary</h3></div>
+    <div class="card-body">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Roll No</th>
+              <th>Name</th>
+              <th>Dept</th>
+              <th>Section</th>
+              <th>Semester</th>
+              <th>Attendance %</th>
+            </tr>
+          </thead>
+          <tbody id="studentInfoTableBody">
+            <!-- Dynamic rows populated by script -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- Main Content Panels -->
+    <main class="content-area">
+      
+      <!-- ========================================================= -->
+      <!-- TAB: STUDENT PORTAL (STUDENT LOGIN DASHBOARD)            -->
+      <!-- ========================================================= -->
+      <section id="tab-student-portal" class="tab-panel">
+        <!-- Student Profile Banner -->
+        <div class="student-profile-banner">
+          <div class="student-profile-left">
+            <div class="student-avatar" id="studentPortalAvatar">AS</div>
+            <div class="student-meta">
+              <h2 id="studentPortalName">Alice Smith</h2>
+              <p>
+                <strong>Roll No:</strong> <span id="studentPortalRoll">101</span> &bull; 
+                <strong>Dept:</strong> <span id="studentPortalDept">Computer Science</span> &bull; 
+                <strong>Section:</strong> <span id="studentPortalSec">Sec A</span> &bull; 
+                <strong>Semester:</strong> <span id="studentPortalSem">1st Semester</span>
+              </p>
+              <p style="margin-top: 4px; font-size: 0.78rem;">Academic Year: 2025-2026 &bull; Standing: <span id="studentPortalStanding" class="badge badge-ok">Good Standing</span></p>
+            </div>
+          </div>
+          <div class="student-profile-right">
+            <div class="student-overall-box">
+              <div class="small" style="color:#94a3b8; text-transform:uppercase; letter-spacing:0.05em;">Overall Attendance</div>
+              <div class="pct-val" id="studentPortalOverallPct">94.1%</div>
+              <div class="small" id="studentPortalOverallRatio" style="color:#cbd5e1;">16 / 17 Classes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Shortage Warning Banner (Dynamic) -->
+        <div id="studentShortageWarningBox" class="shortage-warning-box" style="display:none;">
+          <div class="shortage-warning-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>ATTENDANCE SHORTAGE WARNING — ACTION REQUIRED</span>
+          </div>
+          <p id="studentShortageMessage">You are currently below the required 75% attendance threshold in one or more subjects. As per University Academic Regulations, students falling below 75% are debarred from appearing in End-Semester Final Examinations.</p>
+          <ul class="shortage-items-list" id="studentShortageList">
+            <!-- Dynamic Shortage Items -->
+          </ul>
+        </div>
+
+        <!-- Quick Navigation / Actions -->
+        <div class="card margin-bottom">
+          <div class="card-header flex-between">
+            <h3>Student Actions & Services</h3>
+            <span class="small text-muted">ID: <span id="studentQuickId">101</span></span>
+          </div>
+          <div class="quick-actions-grid">
+            <button class="btn btn-primary" onclick="openStudentApplyLeaveModal()">📝 Apply For Leave / OD</button>
+            <button class="btn btn-secondary" onclick="openBunkCalculatorModal()">📈 Bunk & Predictor Tool</button>
+            <button class="btn btn-outline" onclick="scrollToStudentTimetable()">📅 My Timetable</button>
+            <button class="btn btn-outline" onclick="openEditStudentModal(currentUser.username)">✏️ Edit Profile</button>
+            <button class="btn btn-outline" onclick="showQrBadgeModal(currentUser.username)">🪪 View Digital Student ID</button>
+            <button class="btn btn-outline" onclick="triggerQrUploadForStudent(currentUser.username)">📤 Upload My QR Code</button>
+          </div>
+        </div>
+
+        <!-- Subject-Wise Attendance Breakdown Cards -->
+        <div class="card margin-bottom">
+          <div class="card-header flex-between">
+            <div>
+              <h3>Subject-Wise Attendance Breakdown</h3>
+              <p class="subtitle">Real-time status for all courses registered in Semester 1</p>
+            </div>
+            <span class="badge badge-info">Min Required: 75%</span>
+          </div>
+          <div class="subject-cards-grid" id="studentSubjectCardsGrid">
+            <!-- Dynamic Subject Cards -->
+          </div>
+        </div>
+
+        <!-- Subject-Wise Table Summary -->
+        <div class="card margin-bottom">
+          <div class="card-header flex-between">
+            <h3>Course Attendance Ledger</h3>
+            <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print Attendance Slip</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Course Code & Title</th>
+                  <th>Faculty In Charge</th>
+                  <th>Held</th>
+                  <th>Attended</th>
+                  <th>Absent</th>
+                  <th>Attendance %</th>
+                  <th>Eligibility Status</th>
+                  <th>Action Needed</th>
+                </tr>
+              </thead>
+              <tbody id="studentSubjectTableBody">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- My Leave Requests Portal -->
+        <div class="card margin-bottom" id="studentLeavesSection">
+          <div class="card-header flex-between">
+            <div>
+              <h3>My Leave Applications & OD Status</h3>
+              <p class="subtitle">Track medical leaves, on-duty approvals, and faculty review notes</p>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openStudentApplyLeaveModal()">+ Apply New Leave</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Leave ID</th>
+                  <th>Subject</th>
+                  <th>Date Range</th>
+                  <th>Category</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Reviewer Comments</th>
+                </tr>
+              </thead>
+              <tbody id="studentLeavesTableBody">
+                <!-- Dynamic Leave Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Student Personal Timetable Schedule -->
+        <div class="card" id="studentTimetableSection">
+          <div class="card-header">
+            <h3>My Weekly Class Schedule</h3>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Period 1 (09:00 - 10:00)</th>
+                  <th>Period 2 (10:00 - 11:00)</th>
+                  <th>Period 3 (11:15 - 12:15)</th>
+                  <th>Period 4 (13:15 - 14:15)</th>
+                </tr>
+              </thead>
+              <tbody id="studentTimetableBody">
+                <!-- Dynamic Timetable -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- TAB: FACULTY PORTAL (FACULTY DASHBOARD)                  -->
+      <!-- ========================================================= -->
+      <section id="tab-faculty-portal" class="tab-panel">
+        <!-- Faculty Welcome Banner -->
+        <div class="faculty-welcome-banner">
+          <div>
+            <span class="badge" style="background:rgba(255,255,255,0.2); color:#ffffff; margin-bottom:6px; display:inline-block;">FACULTY PORTAL</span>
+            <h2 id="facultyPortalName">Prof. Rajesh Sharma</h2>
+            <p style="color:#cbd5e1; margin:0; font-size:0.88rem;">
+              <strong>Employee ID:</strong> <span id="facultyPortalId">FAC101</span> &bull; 
+              <strong>Department:</strong> <span id="facultyPortalDept">Computer Science</span> &bull; 
+              <strong>Designation:</strong> <span id="facultyPortalDesig">Professor & HOD</span>
+            </p>
+            <div class="assigned-subjects-badge-list">
+              <span class="small" style="color:#cbd5e1; align-self:center;">Assigned Subjects:</span>
+              <div id="facultyAssignedPillsList" style="display:inline-flex; gap:6px;">
+                <span class="assigned-subj-pill">CS101 - Set Theory & Logic</span>
+                <span class="assigned-subj-pill">CS102 - Data Structures</span>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <button class="btn btn-sm btn-outline" style="color:#ffffff; border-color:rgba(255,255,255,0.4);" onclick="openLoginModal()">Switch User / Logout</button>
+          </div>
+        </div>
+
+        <!-- Faculty Active Assigned Subject Switcher & Stats -->
+        <div class="card margin-bottom">
+          <div class="flex-between" style="flex-wrap:wrap; gap:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <label for="facultyActiveSubjectSelect" style="font-weight:700;">Select Assigned Subject:</label>
+              <select id="facultyActiveSubjectSelect" onchange="changeFacultyActiveSubject()" class="select-sm" style="font-weight:600; min-width:260px;">
+                <!-- Populated strictly with assigned subjects -->
+              </select>
+            </div>
+            <div class="tag-badge" id="facultySubjectAccessNote" style="background:var(--success-light); color:var(--success-color);">
+              🔒 Restricted to your authorized teaching assignments
+            </div>
+          </div>
+        </div>
+
+        <!-- Assigned Subject Metrics Grid -->
+        <div class="stats-grid margin-bottom">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Classes Held (This Course)</span>
+              <h3 id="statFacultyClassesHeld">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Average Subject Attendance</span>
+              <h3 id="statFacultyAvgAttendance">0%</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Enrolled Students</span>
+              <h3 id="statFacultyEnrolled">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Shortage Students (&lt;75%)</span>
+              <h3 id="statFacultyShortageCount">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Faculty Section Tabs -->
+        <div class="card margin-bottom">
+          <div class="flex-between margin-bottom" style="border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+            <div class="row-inputs" style="gap:8px;">
+              <button class="btn btn-sm btn-primary" id="btnFacultyTabMark" onclick="switchFacultySubTab('faculty-subtab-mark')">✏️ Mark Attendance</button>
+              <button class="btn btn-sm btn-outline" id="btnFacultyTabEdit" onclick="switchFacultySubTab('faculty-subtab-edit')">📝 Edit with Reason</button>
+              <button class="btn btn-sm btn-outline" id="btnFacultyTabReports" onclick="switchFacultySubTab('faculty-subtab-reports')">📊 Subject Reports</button>
+              <button class="btn btn-sm btn-outline" id="btnFacultyTabLeaves" onclick="switchFacultySubTab('faculty-subtab-leaves')">📩 Leave Approvals</button>
+            </div>
+            <span class="small text-muted" id="facultyCurrentSubjBanner">Active Course: CS101</span>
+          </div>
+
+          <!-- SUBTAB 1: MARK ATTENDANCE -->
+          <div id="faculty-subtab-mark" class="faculty-subpanel">
+            <div class="margin-bottom flex-between" style="flex-wrap:wrap; gap:12px;">
+              <div class="row-inputs" style="flex-wrap:wrap; gap:10px;">
+                <div>
+                  <label for="facultySessionDate" class="small">Session Date:</label>
+                  <input type="date" id="facultySessionDate" onchange="renderFacultyAttendanceGrid()">
+                </div>
+                <div>
+                  <label for="facultyPeriodSlot" class="small">Period / Slot:</label>
+                  <select id="facultyPeriodSlot" class="select-sm">
+                    <option value="Period 1 (09:00 - 10:00)">Period 1 (09:00 - 10:00)</option>
+                    <option value="Period 2 (10:00 - 11:00)">Period 2 (10:00 - 11:00)</option>
+                    <option value="Period 3 (11:15 - 12:15)">Period 3 (11:15 - 12:15)</option>
+                    <option value="Period 4 (13:15 - 14:15)">Period 4 (13:15 - 14:15)</option>
+                  </select>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                  <label for="facultySessionTopic" class="small">Topic Covered:</label>
+                  <input type="text" id="facultySessionTopic" placeholder="e.g. Set Relations & Functions" class="input-sm">
+                </div>
+              </div>
+              <div class="row-inputs" style="gap:8px; align-self:flex-end;">
+                <button class="btn btn-sm btn-secondary" onclick="facultySelectAll(true)">Mark All Present</button>
+                <button class="btn btn-sm btn-outline" onclick="facultySelectAll(false)">Mark All Absent</button>
+              </div>
+            </div>
+
+            <div class="flex-between margin-bottom">
+              <span id="facultyAttendanceCounter" style="font-weight:700; color:var(--accent-primary);">0 / 0 Present</span>
+              <span class="small text-muted">Click student card to toggle Present / Absent</span>
+            </div>
+
+            <div class="attendance-grid margin-bottom" id="facultyAttendanceGrid">
+              <!-- Enrolled Students Checkbox Cards -->
+            </div>
+
+            <div class="flex-between">
+              <span class="small text-muted">Persists directly to Database (attendance_sessions &amp; attendance_records)</span>
+              <button class="btn btn-primary" onclick="saveFacultyAttendance()">💾 Save &amp; Submit Attendance</button>
+            </div>
+          </div>
+
+          <!-- SUBTAB 2: EDIT ATTENDANCE WITH MANDATORY REASON -->
+          <div id="faculty-subtab-edit" class="faculty-subpanel" style="display:none;">
+            <div class="reason-box-container">
+              <div class="card-header" style="padding:0 0 14px 0; border-bottom:1px solid var(--border-color); margin-bottom:16px;">
+                <h4>📝 Modify Past Attendance Record (Mandatory Reason Required)</h4>
+                <p class="subtitle">All changes are recorded in the compliance audit trail with your Faculty ID and timestamp.</p>
+              </div>
+
+              <div class="row-inputs margin-bottom" style="flex-wrap:wrap; gap:12px;">
+                <div style="flex:1; min-width:180px;">
+                  <label for="facultyEditDate">Session Date:</label>
+                  <input type="date" id="facultyEditDate" onchange="loadFacultyAttendanceRecordForEdit()">
+                </div>
+                <div style="flex:1; min-width:220px;">
+                  <label for="facultyEditStudent">Select Student:</label>
+                  <select id="facultyEditStudent" onchange="loadFacultyAttendanceRecordForEdit()">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+                <div style="flex:1; min-width:180px;">
+                  <label for="facultyEditNewStatus">New Status:</label>
+                  <select id="facultyEditNewStatus">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Leave">On Leave (Sanctioned)</option>
+                    <option value="Late">Late Entry</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group margin-bottom">
+                <label for="facultyEditReason" style="font-weight:700;">
+                  Mandatory Reason for Edit <span class="mandatory-star">*</span>
+                </label>
+                <textarea id="facultyEditReason" rows="3" placeholder="Provide clear rationale (e.g. 'Student submitted certified medical certificate approved by HOD', 'Official sports on-duty representation', 'Clerical correction of marking error')..." required></textarea>
+                <p class="small text-muted">Minimum 5 characters required. This reason is permanently bound to the database audit record.</p>
+              </div>
+
+              <div class="flex-between">
+                <span id="facultyEditCurrentStatusDisplay" class="badge badge-info">Current Status: Unknown</span>
+                <button class="btn btn-primary" onclick="submitFacultyAttendanceEditWithReason()">Submit Change &amp; Record Audit Reason</button>
+              </div>
+            </div>
+
+            <!-- Recent Edits Trail for this Faculty -->
+            <div class="card margin-top">
+              <div class="card-header">
+                <h4>Recent Attendance Edits Audit Trail</h4>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Student</th>
+                      <th>Subject &amp; Date</th>
+                      <th>Old Status</th>
+                      <th>New Status</th>
+                      <th>Mandatory Reason Recorded</th>
+                      <th>Faculty</th>
+                    </tr>
+                  </thead>
+                  <tbody id="facultyRecentEditsTableBody">
+                    <!-- Dynamic Edit Logs -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBTAB 3: SUBJECT REPORTS -->
+          <div id="faculty-subtab-reports" class="faculty-subpanel" style="display:none;">
+            <div class="flex-between margin-bottom">
+              <div>
+                <h4>Subject Attendance Report — <span id="facultyReportSubjectTitle">CS101</span></h4>
+                <p class="subtitle">Complete attendance percentages, shortage alerts, and student roster</p>
+              </div>
+              <div class="row-inputs" style="gap:8px;">
+                <button class="btn btn-sm btn-secondary" onclick="exportFacultyReportCSV()">📥 Export CSV</button>
+                <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print Report</button>
+              </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="row-inputs margin-bottom" style="gap:8px;">
+              <button class="btn btn-sm btn-primary" id="btnReportFilterAll" onclick="filterFacultyReportTable('ALL')">All Students</button>
+              <button class="btn btn-sm btn-outline" id="btnReportFilterShortage" onclick="filterFacultyReportTable('SHORTAGE')">⚠️ Shortage (&lt;75%)</button>
+              <button class="btn btn-sm btn-outline" id="btnReportFilterTop" onclick="filterFacultyReportTable('TOP')">⭐ Top Performers (&ge;85%)</button>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Classes Held</th>
+                    <th>Classes Attended</th>
+                    <th>Classes Absent</th>
+                    <th>Percentage %</th>
+                    <th>Exam Eligibility Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="facultyReportTableBody">
+                  <!-- Dynamic Student Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBTAB 4: LEAVE APPROVALS -->
+          <div id="faculty-subtab-leaves" class="faculty-subpanel" style="display:none;">
+            <div class="card-header flex-between" style="padding:0 0 12px 0;">
+              <div>
+                <h4>Student Leave Applications for Assigned Subjects</h4>
+                <p class="subtitle">Review and approve or reject medical and on-duty leave requests</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th>Duration</th>
+                    <th>Type</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="facultyLeavesTableBody">
+                  <!-- Dynamic Leaves -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 1: DASHBOARD (ADMIN OVERVIEW) -->
+      <section id="tab-dashboard" class="tab-panel active">
+        <!-- Low Attendance Warning Alert Banner -->
+        <div id="lowAttendanceAlertBanner" class="alert-banner" style="display:none;">
+          <div class="flex-between">
+            <div>
+              <strong>⚠️ Low Attendance Alert:</strong>
+              <span id="alertBannerText">3 students are currently below the required 75% attendance threshold.</span>
+            </div>
+            <button class="btn btn-sm btn-danger" onclick="triggerAbsenteeSMSAlerts()">Send WhatsApp/SMS Alerts</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Total Students</span>
+              <h3 id="statTotalStudents">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Classes Conducted</span>
+              <h3 id="statTotalDays">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Average Attendance</span>
+              <h3 id="statAvgAttendance">0%</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Debarred (&lt;<span class="thresh-label">75</span>%)</span>
+              <h3 id="statLowCount">0</h3>
+            </div>
+          </div><!-- end stat-card debarred -->
+        </div><!-- end stats-grid -->
+
+        <div class="grid-2-col-dashboard">
+          <div class="card">
+            <div class="card-header">
+              <h2>Quick Actions &amp; Tools</h2>
+            </div>
+            <div class="quick-actions-grid">
+              <button class="btn btn-primary" onclick="switchTab('tab-analytics')">📊 Advanced Analytics</button>
+              <button class="btn btn-secondary" onclick="switchTab('tab-attendance')">✏️ Mark Attendance</button>
+              <button class="btn btn-outline" onclick="switchTab('tab-subject-details')">📚 Subject-wise Details</button>
+              <button class="btn btn-outline" onclick="switchTab('tab-sets')">🔵 Set Theory Analysis</button>
+              <button class="btn btn-outline" onclick="openBunkCalculatorModal()">📈 Bunk Calculator</button>
+              <button class="btn btn-warning-outline" onclick="openWhatsAppModal()">📲 WhatsApp Alert</button>
+              <button class="btn btn-outline" onclick="openEmailModal()">📧 Email Notices</button>
+              <button class="btn btn-outline" onclick="switchTab('tab-leaves')">📝 Leave Portal</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header flex-between">
+              <h2>Recent Attendance Activity</h2>
+            </div>
+            <div id="recentActivityList" class="recent-list">
+              <p class="text-muted">No attendance recorded yet.</p>
+            </div>
+          </div>
+        </div><!-- end grid-2-col-dashboard -->
+      </section>
+
+      <!-- TAB: ADVANCED ANALYTICS DASHBOARD -->
+      <section id="tab-analytics" class="tab-panel">
+        
+        <!-- Analytics Header & Filter Bar -->
+        <div class="analytics-header-card card">
+          <div class="flex-between flex-wrap gap-12">
+            <div>
+              <div class="analytics-title-group">
+                <span class="analytics-badge">Executive Insights</span>
+                <h2>📊 Advanced Academic Analytics Dashboard</h2>
+              </div>
+              <p class="text-muted">Interactive attendance intelligence, longitudinal trends, subject benchmarks, and department metrics.</p>
+            </div>
+            <div class="analytics-actions">
+              <button class="btn btn-sm btn-outline" onclick="renderAnalyticsDashboard()" title="Recalculate and re-render all analytics">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Refresh Data
+              </button>
+              <button class="btn btn-sm btn-outline" onclick="exportAnalyticsReportCSV()" title="Export Analytics Summary as CSV">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="window.print()" title="Print / Save PDF Report">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Print / PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Analytics Filter Controls -->
+          <div class="analytics-filter-bar margin-top">
+            <div class="filter-item">
+              <label for="analyticsSubjectFilter">Subject Scope:</label>
+              <select id="analyticsSubjectFilter" onchange="renderAnalyticsDashboard()" class="select-sm">
+                <option value="ALL">All Subjects Combined</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="analyticsDeptFilter">Department Scope:</label>
+              <select id="analyticsDeptFilter" onchange="renderAnalyticsDashboard()" class="select-sm">
+                <option value="ALL">All Departments</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label for="analyticsTimeFilter">Time Horizon:</label>
+              <select id="analyticsTimeFilter" onchange="renderAnalyticsDashboard()" class="select-sm">
+                <option value="ALL">All Recorded Sessions</option>
+                <option value="30D">Last 30 Days</option>
+                <option value="MONTH">Current Month Only</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Banner -->
+        <div class="stats-grid analytics-kpi-grid margin-top">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Campus Attendance Rate</span>
+              <h3 id="kpiAvgAttendance">0%</h3>
+              <span class="stat-subtext" id="kpiAvgAttendanceSub">Target: 75% min</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Total Student-Sessions</span>
+              <h3 id="kpiTotalSessionsCount">0</h3>
+              <span class="stat-subtext" id="kpiTotalPresentCount">0 Present</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Top Performing Subject</span>
+              <h3 id="kpiTopSubject">N/A</h3>
+              <span class="stat-subtext" id="kpiTopSubjectPct">0% Attendance</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(2, 132, 199, 0.15); color: var(--info);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 11h4M6 15h4M14 11h4M14 15h4M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4M12 3l9 4H3l9-4z"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Top Department</span>
+              <h3 id="kpiTopDept">N/A</h3>
+              <span class="stat-subtext" id="kpiTopDeptPct">0% Attendance</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-red">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">At-Risk Rate (&lt;<span class="thresh-label">75</span>%)</span>
+              <h3 id="kpiAtRiskRate">0%</h3>
+              <span class="stat-subtext" id="kpiAtRiskCount">0 students debarred</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 Core Visualizations Grid -->
+        <div class="analytics-charts-grid margin-top">
+          
+          <!-- CHART 1: Monthly Attendance Graph -->
+          <div class="card chart-card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>📅 Monthly Attendance Graph</h3>
+                <p class="text-muted small">Longitudinal monthly progression and class volume comparison</p>
+              </div>
+              <span class="chart-tag">Monthly Aggregate</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="monthlyAttendanceChart"></canvas>
+            </div>
+            <div class="chart-footer-metrics" id="monthlySummaryChips"></div>
+          </div>
+
+          <!-- CHART 2: Subject-Wise Attendance -->
+          <div class="card chart-card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>📚 Subject-Wise Attendance</h3>
+                <p class="text-muted small">Comparative benchmark across all enrolled academic courses</p>
+              </div>
+              <span class="chart-tag">Course Comparison</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="subjectWiseChart"></canvas>
+            </div>
+            <div class="chart-footer-metrics" id="subjectSummaryChips"></div>
+          </div>
+
+          <!-- CHART 3: Present vs Absent Chart -->
+          <div class="card chart-card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>⚖️ Present vs Absent Chart</h3>
+                <p class="text-muted small">Aggregate distribution of attendance, unexcused absence, & leaves</p>
+              </div>
+              <span class="chart-tag">Ratio Breakdown</span>
+            </div>
+            <div class="chart-container chart-container-doughnut">
+              <canvas id="presentAbsentChart"></canvas>
+            </div>
+            <div class="present-absent-legend" id="presentAbsentLegend"></div>
+          </div>
+
+          <!-- CHART 4: Department-Wise Comparison -->
+          <div class="card chart-card">
+            <div class="card-header flex-between">
+              <div>
+                <h3>🏢 Department-Wise Comparison</h3>
+                <p class="text-muted small">Cross-departmental participation rates and student count benchmarks</p>
+              </div>
+              <span class="chart-tag">Departmental</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="departmentWiseChart"></canvas>
+            </div>
+            <div class="chart-footer-metrics" id="departmentSummaryChips"></div>
+          </div>
+
+          <!-- CHART 5: Attendance Trend Over Time (Full Width) -->
+          <div class="card chart-card chart-card-full">
+            <div class="card-header flex-between">
+              <div>
+                <h3>📈 Attendance Trend Over Time</h3>
+                <p class="text-muted small">Chronological day-by-day session timeline with moving average momentum</p>
+              </div>
+              <div class="trend-meta-badge" id="trendMomentumBadge">
+                <span>Momentum: </span><strong id="trendMomentumText">Calculating...</strong>
+              </div>
+            </div>
+            <div class="chart-container chart-container-large">
+              <canvas id="attendanceTrendChart"></canvas>
+            </div>
+            <div class="trend-insights-bar" id="trendInsightsBar"></div>
+          </div>
+
+        </div><!-- end analytics-charts-grid -->
+
+        <!-- Department Performance Leaderboard & Course Breakdown Table -->
+        <div class="grid-2-col margin-top">
+          <div class="card">
+            <div class="card-header flex-between">
+              <h3>🏢 Department Attendance Leaderboard</h3>
+              <span class="badge badge-info" id="analyticsDeptCountBadge">0 Depts</span>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Department</th>
+                    <th>Students</th>
+                    <th>Avg %</th>
+                    <th>At-Risk</th>
+                    <th>Status Tier</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsDeptTableBody">
+                  <tr><td colspan="6" class="text-center text-muted">No department data.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header flex-between">
+              <h3>📚 Subject Performance Breakdown</h3>
+              <span class="badge badge-info" id="analyticsCourseCountBadge">0 Subjects</span>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Sessions</th>
+                    <th>Attended / Total</th>
+                    <th>Avg %</th>
+                    <th>Compliance</th>
+                  </tr>
+                </thead>
+                <tbody id="analyticsSubjectTableBody">
+                  <tr><td colspan="5" class="text-center text-muted">No subject data.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- TAB 2: STUDENTS (STUDENT ROSTER) -->
+      <section id="tab-students" class="tab-panel">
+        <div class="grid-2-col-sidebar">
+
+          <!-- LEFT: Add New Student Form -->
+          <div class="card">
+            <div class="flex-between" style="margin-bottom:18px;">
+              <h2 style="font-size:1rem;font-weight:700;">Add New Student</h2>
+              <button class="btn btn-sm btn-outline" onclick="openBulkImportModal()">Bulk Import</button>
+            </div>
+            <form id="addStudentForm" onsubmit="handleAddStudent(event)">
+              <div class="form-group">
+                <label for="sid">Student ID *</label>
+                <input type="text" id="sid" placeholder="e.g. 101 or S-2026-01" required>
+              </div>
+              <div class="form-group">
+                <label for="sname">Full Name *</label>
+                <input type="text" id="sname" placeholder="e.g. Alice Johnson" required>
+              </div>
+              <div class="form-group">
+                <label for="sphone">Mobile Phone (for SMS) *</label>
+                <input type="text" id="sphone" placeholder="+18005550199" required>
+              </div>
+              <div class="form-group">
+                <label for="semail">Email Address</label>
+                <input type="email" id="semail" placeholder="e.g. alice@university.edu">
+              </div>
+              <div class="form-group">
+                <label for="sdept">Department</label>
+                <select id="sdept">
+                  <option value="CSE">Computer Science (CSE)</option>
+                  <option value="ECE">Electronics (ECE)</option>
+                  <option value="MECH">Mechanical (MECH)</option>
+                  <option value="CIVIL">Civil Engineering (CIVIL)</option>
+                  <option value="IT">Information Tech (IT)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="ssec">Section</label>
+                <select id="ssec">
+                  <option value="Sec A">Section A</option>
+                  <option value="Sec B">Section B</option>
+                  <option value="Sec C">Section C</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full" style="margin-top:4px;">Save Student</button>
+            </form>
+          </div>
+
+          <!-- RIGHT: Student Roster Table -->
+          <div class="card">
+            <div class="roster-header">
+              <span class="roster-title">Student Roster (<span id="studentCountBadge">0</span>)</span>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" id="studentSearchInput" placeholder="Search..." oninput="renderStudentsTable()" class="roster-search">
+                <select id="deptFilterSelect" onchange="renderStudentsTable()" class="select-sm" style="height:36px;">
+                  <option value="ALL">All Depts</option>
+                  <option value="CSE">CSE</option>
+                  <option value="ECE">ECE</option>
+                  <option value="MECH">MECH</option>
+                </select>
+                <button class="btn btn-sm btn-outline" onclick="exportCSV()">Export CSV</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Dept</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                  <tr><td colspan="5" class="text-center text-muted" style="padding:24px;">No students registered yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- TAB: SUBJECT-WISE STUDENT DETAILS                        -->
+      <!-- ========================================================= -->
+      <section id="tab-subject-details" class="tab-panel">
+        <!-- Hero Section -->
+        <div class="card subdetails-hero margin-bottom">
+          <div class="flex-between flex-wrap" style="gap: 16px;">
+            <div>
+              <div class="subdetails-hero-tag">
+                <span>📚 GRANULAR MULTI-COURSE TRACKING</span>
+              </div>
+              <h2 style="margin: 6px 0 4px; font-size: 1.45rem; font-weight: 800;">Subject-wise Student Details</h2>
+              <p class="subtitle" style="margin: 0; font-size: 0.9rem;">
+                Detailed breakdown of attendance per course instead of only overall attendance aggregates.
+              </p>
+            </div>
+            <div class="subdetails-hero-badge-group">
+              <span class="badge badge-info" id="subDetailsThresholdBadge">Min Required: 75%</span>
+              <button class="btn btn-sm btn-outline" onclick="window.print()">🖨️ Print Report</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportSubjectWiseCSV()">📥 Export Matrix CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject-Wise KPI Metric Counters -->
+        <div class="stats-grid margin-bottom" id="subDetailsKpiGrid">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Students Tracked</span>
+              <h3 id="statSubDetailsStudents">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-purple"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Subjects Evaluated</span>
+              <h3 id="statSubDetailsSubjects">5</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Subject Shortages (⚠️ &lt;75%)</span>
+              <h3 id="statSubDetailsShortages">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">All-Clear In All Subjects</span>
+              <h3 id="statSubDetailsAllClear">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured Spotlight Student Inspector -->
+        <div class="card margin-bottom" id="subDetailsSpotlightCard">
+          <div class="card-header flex-between flex-wrap" style="gap: 12px;">
+            <div style="display:flex; align-items:center; gap: 10px;">
+              <span class="tag-badge" style="background:var(--accent-light); color:var(--accent); font-weight:700;">🔍 SPOTLIGHT INSPECTOR</span>
+              <h3 style="margin:0;">Featured Student Subject-wise Breakdown</h3>
+            </div>
+            <div style="display:flex; align-items:center; gap: 8px;">
+              <label for="subDetailsSpotlightSelect" class="small" style="font-weight:700;">Select Student:</label>
+              <select id="subDetailsSpotlightSelect" onchange="onSpotlightStudentChange()" class="select-sm" style="min-width: 220px; font-weight:600;">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+          <div id="subDetailsSpotlightContent">
+            <!-- Dynamic Content -->
+          </div>
+        </div>
+
+        <!-- Filter & View Controls -->
+        <div class="card margin-bottom">
+          <div class="flex-between flex-wrap" style="gap: 12px; align-items: center;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <input type="text" id="subDetailsSearchInput" placeholder="🔍 Search student name or ID..." oninput="renderSubjectWiseStudentDetails()" class="roster-search" style="min-width: 240px; height: 38px;">
+              <select id="subDetailsDeptFilter" onchange="renderSubjectWiseStudentDetails()" class="select-sm" style="height:38px;">
+                <option value="ALL">All Departments</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="MECH">MECH</option>
+                <option value="IT">IT</option>
+                <option value="CIVIL">CIVIL</option>
+              </select>
+              <select id="subDetailsStatusFilter" onchange="renderSubjectWiseStudentDetails()" class="select-sm" style="height:38px;">
+                <option value="ALL">All Statuses</option>
+                <option value="SHORTAGE">⚠️ Has Shortage In ≥1 Subject (&lt;75%)</option>
+                <option value="CLEARED">✅ All Subjects Eligible (≥75%)</option>
+              </select>
+            </div>
+            <div style="display:flex; gap: 8px; align-items: center;">
+              <span class="small text-muted" style="font-weight:600;">View Mode:</span>
+              <div class="btn-group" id="subDetailsViewToggle">
+                <button class="btn btn-sm btn-primary" id="btnViewCards" onclick="setSubDetailsView('cards')">🃏 Student Cards</button>
+                <button class="btn btn-sm btn-outline" id="btnViewMatrix" onclick="setSubDetailsView('matrix')">📊 Master Ledger Matrix</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 1: STUDENT SUBJECT CARDS GRID -->
+        <div id="subDetailsCardsContainer">
+          <div class="subdetails-student-grid" id="subDetailsCardsGrid">
+            <!-- Dynamic cards -->
+          </div>
+        </div>
+
+        <!-- VIEW 2: FULL MASTER LEDGER MATRIX TABLE -->
+        <div id="subDetailsMatrixContainer" style="display:none;">
+          <div class="card">
+            <div class="card-header flex-between">
+              <div>
+                <h3 style="margin:0;">Multi-Subject Attendance Ledger Matrix</h3>
+                <p class="subtitle" style="margin:2px 0 0;">Compare Mathematics, Data Structures, Electronics, DBMS, and CS101 attendance across all students</p>
+              </div>
+              <span class="badge badge-outline" id="subDetailsMatrixCountBadge">0 Students</span>
+            </div>
+            <div class="table-container">
+              <table class="table-striped subdetails-matrix-table" id="subDetailsTable">
+                <thead>
+                  <tr>
+                    <th>Roll ID</th>
+                    <th>Student Name</th>
+                    <th>Dept &amp; Sec</th>
+                    <th>Mathematics</th>
+                    <th>Data Structures</th>
+                    <th>Electronics</th>
+                    <th>DBMS</th>
+                    <th>CS101 Logic</th>
+                    <th>Overall %</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subDetailsMatrixTableBody">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- TAB 3: SUBJECT-WISE MARK & EDIT ATTENDANCE               -->
+      <!-- ========================================================= -->
+      <section id="tab-attendance" class="tab-panel">
+        <!-- Subject Selection Bar (Direct inside tab) -->
+        <div class="card margin-bottom attendance-subject-selector-card">
+          <div class="flex-between flex-wrap" style="gap: 12px; align-items: center;">
+            <div>
+              <span class="subdetails-hero-tag">📚 SUBJECT-WISE ATTENDANCE MARKING</span>
+              <h2 style="margin: 4px 0 2px; font-size: 1.25rem; font-weight: 800;">Course Attendance Register</h2>
+              <p class="subtitle" style="margin: 0; font-size: 0.85rem;">Select any subject tab below to mark, edit, or batch-mark attendance for that specific course</p>
+            </div>
+            <div class="marking-mode-toggle">
+              <button class="btn btn-sm btn-primary" id="btnMarkSingleMode" onclick="setMarkingMode('single')">🎯 Single Subject Mode</button>
+              <button class="btn btn-sm btn-outline" id="btnMarkMultiMode" onclick="setMarkingMode('multi')">📋 All-Subjects Matrix Sheet</button>
+            </div>
+          </div>
+
+          <!-- Subject Tabs Navigation Bar inside attendance tab -->
+          <div class="attendance-subject-tabs-container" id="attendanceSubjectTabsBar">
+            <!-- Dynamic Subject Pills with Session counts: Mathematics, Data Structures, Electronics, DBMS, CS101 -->
+          </div>
+          <!-- Add New Subject Button -->
+          <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+            <button class="btn btn-sm btn-add-subject" id="btnAddNewSubject" onclick="openAddSubjectModal()" title="Add a new subject for attendance marking">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Add New Subject
+            </button>
+          </div>
+        </div>
+
+      <!-- ===== ADD NEW SUBJECT MODAL ===== -->
+      <div id="addSubjectModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeAddSubjectModal()">
+        <div class="modal-card add-subject-modal-card">
+          <div class="modal-header-bar">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:1.5rem;">📚</span>
+              <div>
+                <h3 style="margin:0;font-size:1.1rem;font-weight:800;">Add New Subject</h3>
+                <p class="small text-muted" style="margin:0;">Create a new course/subject for attendance marking</p>
+              </div>
+            </div>
+            <button class="btn btn-icon btn-sm" onclick="closeAddSubjectModal()" title="Close" style="margin-left:auto;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="modal-body-content" style="padding:20px 24px;">
+            <div class="form-row-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div class="form-group">
+                <label for="newSubjectCode" class="form-label">Subject Code <span style="color:var(--danger-color);">*</span></label>
+                <input type="text" id="newSubjectCode" class="form-control" placeholder="e.g. CS303" maxlength="8" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()" />
+                <span class="small text-muted" style="margin-top:4px;display:block;">Unique alphanumeric code (max 8 chars)</span>
+              </div>
+              <div class="form-group">
+                <label for="newSubjectIcon" class="form-label">Subject Icon / Emoji</label>
+                <input type="text" id="newSubjectIcon" class="form-control" placeholder="e.g. 📘" maxlength="4" value="📖" style="font-size:1.4rem;text-align:center;" />
+                <span class="small text-muted" style="margin-top:4px;display:block;">Pick any emoji as the subject icon</span>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label for="newSubjectName" class="form-label">Subject Name <span style="color:var(--danger-color);">*</span></label>
+              <input type="text" id="newSubjectName" class="form-control" placeholder="e.g. Operating Systems" maxlength="60" />
+            </div>
+            <div class="form-group" style="margin-bottom:20px;">
+              <label for="newSubjectFaculty" class="form-label">Faculty / Instructor Name</label>
+              <input type="text" id="newSubjectFaculty" class="form-control" placeholder="e.g. Dr. Priya Mehta" maxlength="60" />
+            </div>
+            <div id="addSubjectModalError" class="modal-inline-error" style="display:none;margin-bottom:12px;"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button class="btn btn-outline btn-sm" onclick="closeAddSubjectModal()">Cancel</button>
+              <button class="btn btn-primary" id="btnSaveNewSubject" onclick="saveNewSubject()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Add Subject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- SINGLE SUBJECT MARKING CONTAINER -->
+        <div id="singleSubjectMarkingContainer">
+          <div class="card">
+            <!-- Active Subject Status Header -->
+            <div class="attendance-subject-info-banner flex-between flex-wrap" id="attendanceSubjectInfoBanner">
+              <div style="display:flex; align-items:center; gap: 14px;">
+                <div class="active-subj-icon" id="activeSubjIcon">📐</div>
+                <div>
+                  <div style="display:flex; align-items:center; gap: 8px;">
+                    <h3 style="margin:0; font-size: 1.15rem;" id="activeSubjHeading">Mathematics (MA201)</h3>
+                    <span class="badge badge-info" id="activeSubjBadge">MA201</span>
+                  </div>
+                  <p class="small text-muted" style="margin: 2px 0 0;" id="activeSubjMeta">
+                    Faculty: <strong id="activeSubjFaculty">Dr. Anita Verma</strong> &bull; Total Sessions Held: <strong id="activeSubjTotalSessions">11</strong> &bull; Avg Attendance: <strong id="activeSubjAvgPct">82%</strong>
+                  </p>
+                </div>
+              </div>
+              <div class="attendance-date-ctrl-group">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <label for="attendanceDate" class="small" style="font-weight:700;">Date:</label>
+                  <input type="date" id="attendanceDate" class="input-date" onchange="onAttendanceDateChanged()" style="height:36px;">
+                </div>
+                <div class="btn-group">
+                  <button class="btn btn-xs btn-outline" onclick="setAttendanceDateQuick('today')">Today</button>
+                  <button class="btn btn-xs btn-outline" onclick="setAttendanceDateQuick('yesterday')">Yesterday</button>
+                </div>
+                <select id="attendancePastDatesSelect" onchange="onPastDateSelected(this.value)" class="select-sm" style="height:36px; max-width:170px;">
+                  <option value="">📅 Jump to Past Session...</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Session Status Indicator -->
+            <div class="attendance-session-status-row flex-between flex-wrap" id="attendanceSessionStatusRow">
+              <div style="display:flex; align-items:center; gap: 8px;">
+                <span id="sessionStatusDot" class="session-dot marked">●</span>
+                <span id="sessionStatusText" style="font-size: 0.88rem; font-weight:600;">Loading session status...</span>
+              </div>
+              <div style="display:flex; align-items:center; gap: 10px;">
+                <input type="text" id="attendanceStudentFilter" placeholder="🔍 Filter name / ID..." oninput="filterAttendanceGrid()" class="roster-search" style="height:32px; font-size:0.8rem; width:180px;">
+                <select id="attendanceDeptFilter" onchange="filterAttendanceGrid()" class="select-sm" style="height:32px; font-size:0.8rem;">
+                  <option value="ALL">All Depts</option>
+                  <option value="CSE">CSE</option>
+                  <option value="ECE">ECE</option>
+                  <option value="MECH">MECH</option>
+                  <option value="IT">IT</option>
+                  <option value="CIVIL">CIVIL</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Toolbar with Bulk Actions -->
+            <div class="attendance-toolbar flex-between flex-wrap">
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline" onclick="selectAllAttendance(true)">✅ All Present</button>
+                <button class="btn btn-sm btn-outline" onclick="selectAllAttendance(false)">❌ Clear All (Absent)</button>
+                <button class="btn btn-sm btn-outline" onclick="invertAttendanceSelection()">🔄 Invert</button>
+                <button class="btn btn-sm btn-primary" onclick="openQrAttendanceModal()" title="Upload a student QR code image or scan via camera to mark attendance">📷 Scan / Upload Student QR</button>
+              </div>
+              <div style="display:flex; align-items:center; gap: 12px;">
+                <span class="text-muted" id="selectedAttendanceCounter" style="font-weight:700;">0 / 0 Present</span>
+                <div class="progress-bar-container" style="width: 120px; height: 8px;">
+                  <div id="attendanceProgressBarFill" class="progress-bar-fill bg-fill-ok" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Student Checkboxes Grid -->
+            <div id="attendanceGrid" class="attendance-grid">
+              <p class="text-muted">Loading students...</p>
+            </div>
+
+            <div class="card-footer flex-between flex-wrap">
+              <div class="btn-group">
+                <button class="btn btn-danger-outline btn-sm" onclick="triggerAbsenteeSMSAlerts()">SMS Alerts ($U - A$)</button>
+                <button class="btn btn-warning-outline btn-sm" onclick="openWhatsAppModal()">WhatsApp Absent Alerts</button>
+                <button class="btn btn-outline btn-sm" onclick="switchTab('tab-subject-details')">📚 View All Subject Details</button>
+              </div>
+              <button class="btn btn-primary" onclick="saveAttendanceRecord()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+                <span id="saveAttendanceBtnText">Save Attendance Record</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MULTI-SUBJECT MATRIX MARKING CONTAINER -->
+        <div id="multiSubjectMarkingContainer" style="display:none;">
+          <div class="card">
+            <div class="card-header flex-between flex-wrap" style="gap: 12px;">
+              <div>
+                <h3 style="margin:0;">Multi-Subject Attendance Sheet</h3>
+                <p class="subtitle" style="margin:2px 0 0;">Mark and save attendance across Mathematics, Data Structures, Electronics, DBMS, and CS101 for the selected date simultaneously</p>
+              </div>
+              <div style="display:flex; align-items:center; gap: 8px;">
+                <label for="multiAttendanceDate" class="small" style="font-weight:700;">Date:</label>
+                <input type="date" id="multiAttendanceDate" class="input-date" onchange="renderMultiSubjectMatrix()" style="height:36px;">
+                <button class="btn btn-sm btn-primary" onclick="saveAllMultiSubjectAttendance()">💾 Save All Subjects</button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table-striped attendance-matrix-mark-table" id="attendanceMatrixMarkTable">
+                <thead>
+                  <tr>
+                    <th>Roll ID</th>
+                    <th>Student Name</th>
+                    <th>Dept</th>
+                    <th>
+                      <div class="th-subject-block">
+                        <span>📐 Mathematics</span>
+                        <button class="btn btn-xs btn-outline" onclick="toggleSubjectColAttendance('MA201')">Toggle All</button>
+                      </div>
+                    </th>
+                    <th>
+                      <div class="th-subject-block">
+                        <span>💻 Data Structures</span>
+                        <button class="btn btn-xs btn-outline" onclick="toggleSubjectColAttendance('CS102')">Toggle All</button>
+                      </div>
+                    </th>
+                    <th>
+                      <div class="th-subject-block">
+                        <span>⚡ Electronics</span>
+                        <button class="btn btn-xs btn-outline" onclick="toggleSubjectColAttendance('EC201')">Toggle All</button>
+                      </div>
+                    </th>
+                    <th>
+                      <div class="th-subject-block">
+                        <span>🗄️ DBMS</span>
+                        <button class="btn btn-xs btn-outline" onclick="toggleSubjectColAttendance('CS202')">Toggle All</button>
+                      </div>
+                    </th>
+                    <th>
+                      <div class="th-subject-block">
+                        <span>🔵 CS101 Logic</span>
+                        <button class="btn btn-xs btn-outline" onclick="toggleSubjectColAttendance('CS101')">Toggle All</button>
+                      </div>
+                    </th>
+                    <th>Marked Status</th>
+                  </tr>
+                </thead>
+                <tbody id="multiSubjectMatrixBody">
+                  <!-- Dynamic Multi-Subject Rows -->
+                </tbody>
+              </table>
+            </div>
+            <div class="card-footer flex-between">
+              <span class="small text-muted">Each column maps into that specific subject's discrete attendance ledger.</span>
+              <button class="btn btn-primary" onclick="saveAllMultiSubjectAttendance()">
+                💾 Save All Multi-Subject Attendance
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 4: SET THEORY ANALYSIS -->
+      <section id="tab-sets" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between flex-wrap">
+            <div>
+              <h2>Set Operations & Venn Diagram Engine</h2>
+              <p class="text-muted">Compare attendance sets across 2 or 3 dates using Set Theory formulas.</p>
+            </div>
+            <div class="set-mode-toggle">
+              <button id="btnSetMode2" class="btn btn-sm btn-primary" onclick="setVennMode(2)">2-Set Mode (A, B)</button>
+              <button id="btnSetMode3" class="btn btn-sm btn-outline" onclick="setVennMode(3)">3-Set Mode (A, B, C)</button>
+            </div>
+          </div>
+
+          <div class="row-inputs flex-wrap">
+            <div class="form-group flex-1"><label for="dateA">Set A (First Date)</label><select id="dateA" onchange="runSetAnalysis()"></select></div>
+            <div class="form-group flex-1"><label for="dateB">Set B (Second Date)</label><select id="dateB" onchange="runSetAnalysis()"></select></div>
+            <div class="form-group flex-1" id="groupDateC" style="display:none;"><label for="dateC">Set C (Third Date)</label><select id="dateC" onchange="runSetAnalysis()"></select></div>
+            <div class="form-group flex-align-end"><button class="btn btn-primary" onclick="runSetAnalysis()">Calculate Sets</button></div>
+          </div>
+        </div>
+
+        <div class="grid-2-col margin-top">
+          <div class="card text-center">
+            <h3>Venn Diagram Visualizer</h3>
+            <p class="text-muted small" id="vennSubtext">Dynamic 2-Circle Venn Diagram</p>
+            <div class="venn-wrapper">
+              <svg id="vennSvg2" viewBox="0 0 400 240" class="venn-svg">
+                <circle id="circleA" cx="150" cy="120" r="85" fill="rgba(59, 130, 246, 0.35)" stroke="#2563eb" stroke-width="2.5"/>
+                <circle id="circleB" cx="250" cy="120" r="85" fill="rgba(168, 85, 247, 0.35)" stroke="#9333ea" stroke-width="2.5"/>
+                <text x="95" y="125" class="venn-text-title" fill="#1e3a8a">Set A</text>
+                <text x="95" y="145" class="venn-text-count" id="vennCountA">0</text>
+                <text x="305" y="125" class="venn-text-title" fill="#581c87">Set B</text>
+                <text x="305" y="145" class="venn-text-count" id="vennCountB">0</text>
+                <text x="200" y="115" class="venn-text-title" fill="#065f46">A ∩ B</text>
+                <text x="200" y="135" class="venn-text-count" id="vennCountInter">0</text>
+              </svg>
+
+              <svg id="vennSvg3" viewBox="0 0 400 300" class="venn-svg" style="display:none;">
+                <circle cx="160" cy="130" r="75" fill="rgba(59, 130, 246, 0.35)" stroke="#2563eb" stroke-width="2.5"/>
+                <circle cx="240" cy="130" r="75" fill="rgba(168, 85, 247, 0.35)" stroke="#9333ea" stroke-width="2.5"/>
+                <circle cx="200" cy="190" r="75" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" stroke-width="2.5"/>
+                <text x="110" y="110" class="venn-text-title" fill="#1e3a8a">Set A</text>
+                <text x="110" y="130" class="venn-text-count" id="v3_A">0</text>
+                <text x="290" y="110" class="venn-text-title" fill="#581c87">Set B</text>
+                <text x="290" y="130" class="venn-text-count" id="v3_B">0</text>
+                <text x="200" y="250" class="venn-text-title" fill="#065f46">Set C</text>
+                <text x="200" y="270" class="venn-text-count" id="v3_C">0</text>
+                <text x="200" y="145" class="venn-text-title" fill="#0f172a" style="font-size:11px;">A ∩ B ∩ C</text>
+                <text x="200" y="165" class="venn-text-count" id="v3_ABC">0</text>
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Set Operations Output</h3>
+            <div id="setMathSummary" class="set-math-box"><p class="text-muted">Select dates above.</p></div>
+          </div>
+        </div>
+
+        <div class="card margin-top">
+          <h3>Set Membership Breakdown</h3>
+          <div id="setBreakdownContainer" class="set-breakdown-grid"></div>
+        </div>
+      </section>
+
+      <!-- TAB 5: LEADERBOARD & RANKINGS -->
+      <section id="tab-leaderboard" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between flex-wrap">
+            <div>
+              <h2>🏆 Student Attendance Leaderboard & Rankings</h2>
+              <p class="text-muted">Recognizing top regular attendees and perfect streaks.</p>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Student Name</th>
+                  <th>ID</th>
+                  <th>Department</th>
+                  <th>Attendance %</th>
+                  <th>Sessions Attended</th>
+                  <th>Badge</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardTableBody">
+                <tr><td colspan="7" class="text-center text-muted">No attendance data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: LEAVE PORTAL & EXCUSED ABSENCE -->
+      <section id="tab-leaves" class="tab-panel">
+        <div class="grid-2-col-sidebar">
+          <div class="card">
+            <div class="card-header">
+              <h2>Apply for Student Leave</h2>
+            </div>
+            <form id="leaveApplicationForm" onsubmit="handleApplyLeave(event)">
+              <div class="form-group">
+                <label for="leaveStudentSelect">Select Student *</label>
+                <select id="leaveStudentSelect" required></select>
+              </div>
+              <div class="form-group">
+                <label for="leaveStartDate">Start Date *</label>
+                <input type="date" id="leaveStartDate" required>
+              </div>
+              <div class="form-group">
+                <label for="leaveEndDate">End Date *</label>
+                <input type="date" id="leaveEndDate" required>
+              </div>
+              <div class="form-group">
+                <label for="leaveType">Leave Category</label>
+                <select id="leaveType">
+                  <option value="Medical">Medical / Health Leave</option>
+                  <option value="Academic">Authorized Academic Event / Hackathon</option>
+                  <option value="Personal">Personal Emergency</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="leaveReason">Reason Description</label>
+                <input type="text" id="leaveReason" placeholder="e.g. Doctor prescribed rest">
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Submit Application</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header flex-between">
+              <h2>Leave Requests & Approval Status</h2>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Dates</th>
+                    <th>Category</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="leaveRequestsTableBody">
+                  <tr><td colspan="6" class="text-center text-muted">No leave requests logged.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 9: TIMETABLE INTEGRATION -->
+      <section id="tab-timetable" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between flex-wrap">
+            <div>
+              <h2>🗓️ Weekly Academic Timetable</h2>
+              <p class="text-muted">Click any scheduled period to instantly switch and mark attendance.</p>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="timetable-grid">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>09:00 - 10:00</th>
+                  <th>10:00 - 11:00</th>
+                  <th>11:15 - 12:15</th>
+                  <th>01:00 - 02:00</th>
+                  <th>02:00 - 03:00</th>
+                </tr>
+              </thead>
+              <tbody id="timetableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 10: EXAM DEBARRED ROLL -->
+      <section id="tab-eligibility" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between flex-wrap">
+            <div>
+              <h2>Semester Exam Hall Ticket Eligibility Roll Sheet</h2>
+              <p class="text-muted">Students below <span class="thresh-label">75</span>% are automatically DEBARRED from final exams.</p>
+            </div>
+            <div class="row-inputs">
+              <button class="btn btn-primary btn-sm" onclick="window.print()">Print / Export PDF Roll Sheet</button>
+            </div>
+          </div>
+
+          <div class="table-container print-area">
+            <table>
+              <thead>
+                <tr>
+                  <th>Roll No / ID</th>
+                  <th>Student Name</th>
+                  <th>Department</th>
+                  <th>Sessions Attended</th>
+                  <th>Attendance %</th>
+                  <th>Exam Status</th>
+                  <th>Hall Ticket Action</th>
+                </tr>
+              </thead>
+              <tbody id="eligibilityTableBody">
+                <tr><td colspan="7" class="text-center text-muted">No attendance data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 11: REPORTS -->
+      <section id="tab-report" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between flex-wrap">
+            <div>
+              <h2>Cumulative Attendance Report</h2>
+              <p class="text-muted">Filter by student status, date, or export to Excel/CSV.</p>
+            </div>
+            <div class="row-inputs">
+              <select id="reportFilterStatus" onchange="renderReportTable()" class="select-sm">
+                <option value="ALL">All Students</option>
+                <option value="LOW">At-Risk (&lt;<span class="thresh-label">75</span>%)</option>
+                <option value="HIGH">Good Attendance (≥<span class="thresh-label">75</span>%)</option>
+              </select>
+              <button class="btn btn-warning-outline btn-sm" onclick="openWarningNoticeModal()">Warning Letters</button>
+              <button class="btn btn-outline btn-sm" onclick="exportCSV()">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>Dept / Sec</th>
+                  <th>Present</th>
+                  <th>Total</th>
+                  <th>Percentage</th>
+                  <th>Progress</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="reportTableBody">
+                <tr><td colspan="9" class="text-center text-muted">No attendance data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cloud Sync Box -->
+        <div class="card margin-top">
+          <div class="card-header">
+            <h2>☁️ Cloud Database & API Sync</h2>
+          </div>
+          <div class="row-inputs flex-wrap">
+            <input type="text" id="cloudEndpointInput" placeholder="https://your-cloud-database.api/attendance" class="flex-1">
+            <button class="btn btn-secondary" onclick="syncCloudDatabase()">Sync with Cloud Database</button>
+            <button class="btn btn-outline" onclick="exportJSONBackup()">Backup JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 12: AUDIT LOG -->
+      <section id="tab-audit" class="tab-panel">
+        <div class="card">
+          <div class="card-header flex-between">
+            <h2>📜 Attendance Audit Trail & History Log</h2>
+            <button class="btn btn-sm btn-outline" onclick="clearAuditLog()">Clear Log</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>User Role</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="auditLogTableBody">
+                <tr><td colspan="4" class="text-center text-muted">No audit events recorded yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MODAL 1: AUTHENTICATION LOGIN -->
+    <div id="loginModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🔐 Enterprise Academic Login</h3>
+          <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="loginRoleSelect">Account Type / Role</label>
+            <select id="loginRoleSelect" onchange="onLoginRoleChange()">
+              <option value="Student">🎓 Student (Personal Dashboard & Attendance)</option>
+              <option value="Teacher">👨‍🏫 Faculty / Teacher (Assigned Subjects & Marking)</option>
+              <option value="Admin">🛡️ Administrator (Full Academic Suite Oversight)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="loginUsername" id="loginUsernameLabel">Student Roll Number / ID</label>
+            <input type="text" id="loginUsername" placeholder="e.g. 101 or 102">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" value="student123">
+          </div>
+
+          <!-- Quick 1-Click Demo Logins -->
+          <div class="demo-logins-section">
+            <span class="small" style="font-weight:700; color:var(--text-muted);">Quick 1-Click Demo Logins:</span>
+            <div class="demo-chips-grid">
+              <button type="button" class="demo-chip" onclick="quickFillLogin('student', '101', 'student123')">🎓 Alice (Student 101 - Safe 94%)</button>
+              <button type="button" class="demo-chip" onclick="quickFillLogin('student', '102', 'student123')">⚠️ Bob (Student 102 - Shortage 35%)</button>
+              <button type="button" class="demo-chip" onclick="quickFillLogin('faculty', 'FAC101', 'faculty123')">👨‍🏫 Prof. Sharma (CS101, CS102)</button>
+              <button type="button" class="demo-chip" onclick="quickFillLogin('faculty', 'FAC102', 'faculty123')">👩‍🏫 Dr. Rao (EC201)</button>
+              <button type="button" class="demo-chip" onclick="quickFillLogin('admin', 'admin', 'admin123')">🛡️ Administrator</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('loginModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="handleLoginSubmit()">Authenticate &amp; Open Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 1B: STUDENT APPLY LEAVE MODAL -->
+    <div id="studentApplyLeaveModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📝 Submit Academic Leave / OD Application</h3>
+          <button class="modal-close" onclick="closeModal('studentApplyLeaveModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group margin-bottom">
+            <label for="studentLeaveSubject">Affected Course / Subject:</label>
+            <select id="studentLeaveSubject" class="form-control">
+              <option value="ALL">All Subjects (General Day Leave)</option>
+              <option value="CS101">CS101 - Set Theory & Logic</option>
+              <option value="CS102">CS102 - Data Structures</option>
+              <option value="EC201">EC201 - Electronics</option>
+              <option value="CS202">CS202 - DBMS (Database Systems)</option>
+              <option value="MA201">MA201 - Mathematics</option>
+            </select>
+          </div>
+          <div class="row-inputs margin-bottom" style="gap:10px;">
+            <div style="flex:1;">
+              <label for="studentLeaveStartDate">Start Date:</label>
+              <input type="date" id="studentLeaveStartDate" class="form-control" required>
+            </div>
+            <div style="flex:1;">
+              <label for="studentLeaveEndDate">End Date:</label>
+              <input type="date" id="studentLeaveEndDate" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-group margin-bottom">
+            <label for="studentLeaveType">Leave Category:</label>
+            <select id="studentLeaveType" class="form-control">
+              <option value="Medical">Medical Leave (Doctor Certificate)</option>
+              <option value="On Duty">On Duty / University Representation</option>
+              <option value="Personal">Personal / Family Urgent</option>
+              <option value="Emergency">Emergency</option>
+            </select>
+          </div>
+          <div class="form-group margin-bottom">
+            <label for="studentLeaveReasonText">Detailed Reason <span class="mandatory-star">*</span>:</label>
+            <textarea id="studentLeaveReasonText" rows="3" placeholder="State clear medical, academic or personal justification..." class="form-control" required></textarea>
+          </div>
+          <p class="small text-muted">Submitted requests are routed immediately to respective course faculty for review and attendance condonation.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('studentApplyLeaveModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="submitStudentLeaveApplication()">Submit Leave Application</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: BUNK & PREDICTOR CALCULATOR -->
+    <div id="bunkModal" class="modal-overlay">
+      <div class="modal-content modal-xl">
+        <div class="modal-header">
+          <h3>📈 Attendance Prediction & Bunk Calculator</h3>
+          <button class="modal-close" onclick="closeModal('bunkModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="bunkCalculatorBody">
+          <!-- Dynamic Bunk Calculations -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: WHATSAPP ABSENT ALERT SENDER -->
+    <div id="whatsappModal" class="modal-overlay">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h3>📲 Direct WhatsApp Absence Notification Dispatcher</h3>
+          <button class="modal-close" onclick="closeModal('whatsappModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="whatsAppModalBody">
+          <!-- WhatsApp Click-to-Chat Cards -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: EMAIL NOTIFICATION COMPOSER -->
+    <div id="emailModal" class="modal-overlay">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h3>📧 Email Notice Dispatcher</h3>
+          <button class="modal-close" onclick="closeModal('emailModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="emailModalBody">
+          <!-- Dynamic Mailto Cards -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: BULK IMPORT -->
+    <div id="bulkImportModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Bulk Import Students</h3>
+          <button class="modal-close" onclick="closeModal('bulkImportModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">Format: <code>ID, Name, Mobile, Email, Dept, Sec</code></p>
+          <textarea id="bulkImportText" placeholder="101, Alice Smith, +18005550101, alice@uni.edu, CSE, Sec A" rows="8"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeModal('bulkImportModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="handleBulkImport()">Import Students</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 6: STUDENT PROFILE -->
+    <div id="studentProfileModal" class="modal-overlay">
+      <div class="modal-content modal-xl">
+        <div class="modal-header">
+          <h3 id="profTitle">Student Profile</h3>
+          <button class="modal-close" onclick="closeModal('studentProfileModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="profBody"></div>
+      </div>
+    </div>
+
+    <!-- MODAL 6.1: EDIT STUDENT PROFILE -->
+    <div id="editStudentModal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+          <h3 id="editStudentModalTitle">✏️ Edit Student Profile</h3>
+          <button class="modal-close" onclick="closeModal('editStudentModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="editStudentForm" onsubmit="handleSaveEditedStudent(event)">
+            <input type="hidden" id="editStudentId">
+            <div style="margin-bottom: 12px;">
+              <label class="small" style="font-weight:700;">Student ID / Roll No:</label>
+              <input type="text" id="editStudentIdDisplay" class="form-control" disabled style="width:100%; margin-top:4px; opacity:0.75; font-family:monospace; font-weight:700;">
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="editStudentName" class="small" style="font-weight:700;">Full Name:</label>
+              <input type="text" id="editStudentName" class="form-control" required style="width:100%; margin-top:4px;">
+            </div>
+            <div class="grid-2col" style="gap: 10px; margin-bottom: 12px;">
+              <div>
+                <label for="editStudentDept" class="small" style="font-weight:700;">Department:</label>
+                <select id="editStudentDept" class="form-control select-sm" style="width:100%; margin-top:4px; height:38px;">
+                  <option value="CSE">CSE</option>
+                  <option value="ECE">ECE</option>
+                  <option value="MECH">MECH</option>
+                  <option value="IT">IT</option>
+                  <option value="CIVIL">CIVIL</option>
+                </select>
+              </div>
+              <div>
+                <label for="editStudentSec" class="small" style="font-weight:700;">Section:</label>
+                <input type="text" id="editStudentSec" class="form-control" placeholder="Sec A" style="width:100%; margin-top:4px;">
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label for="editStudentPhone" class="small" style="font-weight:700;">Mobile Number:</label>
+              <input type="tel" id="editStudentPhone" class="form-control" style="width:100%; margin-top:4px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label for="editStudentEmail" class="small" style="font-weight:700;">Email Address:</label>
+              <input type="email" id="editStudentEmail" class="form-control" style="width:100%; margin-top:4px;">
+            </div>
+            <div class="flex-between" style="gap:10px;">
+              <button type="button" class="btn btn-outline" onclick="closeModal('editStudentModal')">Cancel</button>
+              <button type="submit" class="btn btn-primary">💾 Save Profile Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 7: WARNING LETTER PREVIEW -->
+    <div id="warningLetterModal" class="modal-overlay">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h3>Low Attendance Warning Notices</h3>
+          <div>
+            <button class="btn btn-sm btn-primary" onclick="window.print()">Print / Save PDF</button>
+            <button class="modal-close" onclick="closeModal('warningLetterModal')">&times;</button>
+          </div>
+        </div>
+        <div class="modal-body print-area" id="warningNoticeContainer"></div>
+      </div>
+    </div>
+
+    <!-- MODAL 8: SMS OUTBOX -->
+    <div id="smsOutboxModal" class="modal-overlay">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h3>Absentee SMS Alert Dispatcher (Set U − A)</h3>
+          <button class="modal-close" onclick="closeModal('smsOutboxModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group margin-bottom">
+            <label for="backendApiUrl">Backend API Endpoint Server:</label>
+            <div class="row-inputs">
+              <input type="text" id="backendApiUrl" value="http://localhost:5000/api/send-sms" class="flex-1">
+              <button class="btn btn-outline btn-sm" onclick="testBackendHealth()">Check Status</button>
+            </div>
+          </div>
+          <div class="card margin-bottom">
+            <div class="flex-between">
+              <h4>SMS Dispatch Payload (Absent: <span id="smsAbsentCount">0</span>)</h4>
+              <button class="btn btn-primary btn-sm" onclick="sendSmsPayloadToBackend()">Send SMS Now</button>
+            </div>
+            <div id="smsMessageList" class="sms-outbox-list margin-top"></div>
+            <div id="smsStatusBox" class="margin-top" style="display:none;"></div>
+          </div>
+        </div><!-- end modal-body -->
+      </div><!-- end modal-content -->
+    </div><!-- end smsOutboxModal -->
+
+    <!-- MODAL 9: QR BADGE & CUSTOM UPLOAD -->
+    <div id="qrBadgeModal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3 id="qrBadgeTitle">Student QR Badge</h3>
+          <button class="modal-close" onclick="closeModal('qrBadgeModal')">&times;</button>
+        </div>
+        <div class="modal-body print-area" id="qrBadgeBody"></div>
+      </div>
+    </div>
+
+    <!-- MODAL 10: QR ATTENDANCE SCANNER & UPLOADER -->
+    <div id="qrAttendanceModal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header">
+          <h3>📷 Student QR Attendance Scanner & Uploader</h3>
+          <button class="modal-close" onclick="closeQrAttendanceModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="qr-attendance-tabs">
+            <button class="qr-tab-btn active" id="qrTabBtnUpload" onclick="switchQrAttendanceTab('upload')">📤 Upload QR Image</button>
+            <button class="qr-tab-btn" id="qrTabBtnCamera" onclick="switchQrAttendanceTab('camera')">🎥 Live Camera Scanner</button>
+            <button class="qr-tab-btn" id="qrTabBtnManual" onclick="switchQrAttendanceTab('manual')">⌨️ Enter ID / QR Text</button>
+          </div>
+
+          <!-- TAB 1: UPLOAD QR IMAGE -->
+          <div id="qrAttPanelUpload">
+            <div class="qr-dropzone-large" id="qrAttendanceDropzone" onclick="triggerAttendanceQrFilePicker()" ondragover="onAttendanceQrDragOver(event)" ondragleave="onAttendanceQrDragLeave(event)" ondrop="onAttendanceQrDrop(event)">
+              <div style="font-size: 2.2rem; margin-bottom: 6px;">📤</div>
+              <div style="font-weight: 700; font-size: 1rem; color: var(--accent); margin-bottom: 4px;">Click to Upload QR Code Image</div>
+              <div class="small text-muted">or drag and drop a student ID QR image (PNG, JPG, SVG, WebP)</div>
+              <input type="file" id="attendanceQrFileInput" accept="image/*" style="display:none;" onchange="onAttendanceQrFileSelected(event)">
+            </div>
+          </div>
+
+          <!-- TAB 2: LIVE CAMERA SCANNER -->
+          <div id="qrAttPanelCamera" style="display:none;">
+            <div class="camera-hud-box">
+              <video id="qrCameraVideo" class="camera-video" playsinline autoplay muted></video>
+              <canvas id="qrCameraCanvas" style="display:none;"></canvas>
+              <div class="camera-hud-overlay">
+                <div class="face-target-box">
+                  <div class="face-scan-laser"></div>
+                </div>
+                <div class="hud-status-text" id="cameraHudStatusText">Point camera at Student ID QR code</div>
+              </div>
+            </div>
+            <div style="text-align:center; margin-bottom: 10px;">
+              <button class="btn btn-sm btn-outline" onclick="restartCameraScanner()">🔄 Switch / Restart Camera</button>
+            </div>
+          </div>
+
+          <!-- TAB 3: MANUAL QR TEXT -->
+          <div id="qrAttPanelManual" style="display:none;">
+            <div style="margin-bottom: 12px;">
+              <label for="manualQrInput" class="small" style="font-weight:700;">Student ID or Raw QR Payload:</label>
+              <input type="text" id="manualQrInput" class="form-control" placeholder="e.g. 101 or ID:101 or JSON" style="width:100%; margin-top:4px;" onkeyup="if(event.key==='Enter') processManualQrInput()">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="processManualQrInput()">Mark Present</button>
+          </div>
+
+          <!-- FEEDBACK BANNER -->
+          <div id="qrScanFeedbackBox" style="display:none;" class="qr-scan-feedback"></div>
+
+          <!-- TARGET COURSE & SESSION STATUS -->
+          <div style="background:var(--bg-page); padding:10px 14px; border-radius:8px; margin-top:12px; font-size:0.82rem; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span>Active Course: <strong id="qrAttActiveCourse">CS101</strong></span> &bull; 
+              <span>Date: <strong id="qrAttActiveDate">Today</strong></span>
+            </div>
+            <span class="badge badge-info" id="qrAttSessionStatus">Session Active</span>
+          </div>
+
+          <!-- SCANNED IN THIS SESSION -->
+          <div style="margin-top: 14px;">
+            <div style="font-size: 0.8rem; font-weight:700; color:var(--text-secondary); margin-bottom: 6px; display:flex; justify-content:space-between;">
+              <span>Scanned Students (<span id="qrScannedCount">0</span>)</span>
+              <span class="small text-muted">Auto-saves to database</span>
+            </div>
+            <div class="scanned-students-list" id="qrScannedList">
+              <div class="text-muted text-center" style="padding:10px; font-size:0.8rem;">No QR codes scanned yet in this session.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <p>Student Attendance Analyzer Ultimate Enterprise — Built with HTML5, CSS3, ES6 & Full Set Theory Engine</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
