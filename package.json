@@ -1,0 +1,27 @@
+{
+  "name": "attendance-analyzer-backend",
+  "version": "2.0.0",
+  "description": "Node.js + Express + MySQL Backend for Student Attendance Analyzer Ultimate",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node -e \"require('./db').initializeDatabase()\""
+  },
+  "keywords": [
+    "attendance",
+    "express",
+    "mysql",
+    "student-portal",
+    "faculty-dashboard"
+  ],
+  "author": "Google DeepMind pair programming with User",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.9.7",
+    "nodemailer": "^6.9.13"
+  }
+}
